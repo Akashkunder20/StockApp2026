@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Next-Day Price Predictor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        (function(){
+            var saved = localStorage.getItem('theme');
+            document.documentElement.setAttribute('data-theme', saved === 'light' ? 'light' : 'dark');
+        })();
+    </script>
+</head>
+
+<body>
+
+    <div class="ticker">
+        <div class="ticker-track" id="tickerTrack">
+            <span class="up">NIFTY50 24,812.30 &#9650;0.42%</span>
+            <span class="down">SENSEX 81,204.15 &#9660;0.11%</span>
+            <span class="up">ASIANPAINT 1,747.25 &#9650;3.61%</span>
+            <span class="down">RELIANCE 2,981.10 &#9660;0.85%</span>
+            <span class="up">TCS 3,842.60 &#9650;1.02%</span>
+            <span class="down">HDFCBANK 1,652.40 &#9660;0.29%</span>
+        </div>
+    </div>
+
+    <div class="brand-top-left">
+        <img src="{{ url_for('static', filename='Glowing crystalline _A_ in blue light.png') }}"
+             alt="Avatar A Logo"
+             class="logo-top-left">
+        <span class="brand-name">Ashborn</span>
+    </div>
+
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark or light mode">
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <span class="theme-toggle-label">Light mode</span>
+    </button>
+
+    <div class="container">
+
+        <svg class="hero-candles" width="320" height="180" viewBox="0 0 360 200">
+            <line x1="20" y1="30" x2="20" y2="80" stroke="#2bbf9e" stroke-width="2"/>
+            <rect x="14" y="45" width="12" height="25" fill="#2bbf9e"/>
+            <line x1="60" y1="50" x2="60" y2="120" stroke="#e5534b" stroke-width="2"/>
+            <rect x="54" y="60" width="12" height="35" fill="#e5534b"/>
+            <line x1="100" y1="10" x2="100" y2="70" stroke="#2bbf9e" stroke-width="2"/>
+            <rect x="94" y="20" width="12" height="30" fill="#2bbf9e"/>
+            <line x1="140" y1="40" x2="140" y2="100" stroke="#2bbf9e" stroke-width="2"/>
+            <rect x="134" y="55" width="12" height="30" fill="#2bbf9e"/>
+            <line x1="180" y1="60" x2="180" y2="140" stroke="#e5534b" stroke-width="2"/>
+            <rect x="174" y="75" width="12" height="40" fill="#e5534b"/>
+            <line x1="220" y1="20" x2="220" y2="90" stroke="#2bbf9e" stroke-width="2"/>
+            <rect x="214" y="35" width="12" height="35" fill="#2bbf9e"/>
+            <line x1="260" y1="45" x2="260" y2="110" stroke="#e5534b" stroke-width="2"/>
+            <rect x="254" y="55" width="12" height="30" fill="#e5534b"/>
+            <line x1="300" y1="15" x2="300" y2="75" stroke="#2bbf9e" stroke-width="2"/>
+            <rect x="294" y="25" width="12" height="30" fill="#2bbf9e"/>
+        </svg>
+
+        <!-- <p class="eyebrow">NSE-PREDICT // v1</p> -->
+        <h1>Stock Next-Day Price Predictor</h1>
+        <p class="subtitle">
+            Predict the next trading day close price using NSE stock data
+        </p>
+
+        <div class="terminal">
+            <div class="terminal-head">
+                <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+                <span class="terminal-path">nse-predict / upload.csv</span>
+            </div>
+            <div class="terminal-body">
+                <span class="file-line">awaiting file input_</span>
+
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="file-wrapper">
+                        <input type="file" name="file" accept=".csv" required>
+                        <button type="submit">Run prediction</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if preview %}
+        <div class="card">
+            <h2>Dataset preview</h2>
+            <div style="overflow-x:auto;">
+                {{ preview | safe }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if result %}
+        <div class="card">
+            <h2>Prediction result</h2>
+
+            <div class="grid">
+                <div>
+                    <span>Last trading date</span>
+                    <p>{{ result.last_date }}</p>
+                </div>
+
+                <div>
+                    <span>Last close price</span>
+                    <p>&#8377; {{ result.last_close }}</p>
+                    <svg class="sparkline" id="sparkline" viewBox="0 0 120 32" preserveAspectRatio="none"
+                         data-points="{{ result.close_history | tojson }}"></svg>
+                </div>
+
+                <div>
+                    <span>Predicted return</span>
+                    <p>{{ result.predicted_return }} %</p>
+                </div>
+            </div>
+
+            <div class="highlight {% if result.predicted_return < 0 %}is-down{% endif %}">
+                <span>Predicted next-day close</span>
+                <h1>&#8377; {{ result.predicted_close }}</h1>
+            </div>
+
+            {% set conf = result.confidence %}
+            <div class="confidence">
+                <div class="confidence-head">
+                    <span>Prediction confidence</span>
+                    <span class="confidence-value">{{ conf }}%</span>
+                </div>
+                <div class="confidence-track">
+                    <div class="confidence-fill {{ 'conf-high' if conf >= 70 else ('conf-medium' if conf >= 40 else 'conf-low') }}"
+                         data-width="{{ conf }}"></div>
+                </div>
+            </div>
+
+            <button type="button" class="btn-export" id="exportBtn"
+                data-date="{{ result.last_date }}"
+                data-last-close="{{ result.last_close }}"
+                data-predicted-return="{{ result.predicted_return }}"
+                data-predicted-close="{{ result.predicted_close }}"
+                data-confidence="{{ result.confidence }}">
+                Export result (.csv)
+            </button>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <footer class="disclaimer">
+        <p>
+            <strong>Disclaimer:</strong>
+            Educational purpose only. Predictions are based on historical data and do not guarantee future performance.
+        </p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='javascript.js') }}"></script>
+</body>
+</html>
