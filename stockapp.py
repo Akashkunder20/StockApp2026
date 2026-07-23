@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import pandas as pd
 import xgboost as xgb
+import os
 
 app = Flask(__name__)
 
@@ -8,7 +9,10 @@ app = Flask(__name__)
 # LOAD MODEL (ONCE)
 # ---------------------------
 model = xgb.XGBRegressor()
-model.load_model("xgb_model2.json")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "xgb_model2.json")
+
+model.load_model(MODEL_PATH)
 
 # ---------------------------
 # HOME ROUTE
